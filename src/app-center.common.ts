@@ -4,6 +4,7 @@ export interface InitOption {
   analytics: boolean;
   crashes: boolean;
   appSecret: string;
+  distribute: boolean;
 }
 
 export interface TrackEventOption {
@@ -21,7 +22,6 @@ export interface AnalyticsListener {
   onSendingFailed?: (log: any, e: any) => void;
   onSendingSucceeded?: (log: any) => void;
 }
-
 
 export interface CrashesListener {
   shouldProcess?: (report: ErrorReport) => void;

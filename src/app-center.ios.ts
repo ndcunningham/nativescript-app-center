@@ -1,16 +1,20 @@
-
-
-
-
-import { InitOption, TrackEventOption, PropertyOption, CrashesListener, AnalyticsListener } from './app-center.common';
+import {
+  InitOption,
+  TrackEventOption,
+  PropertyOption,
+  CrashesListener,
+  AnalyticsListener
+} from './app-center.common';
 import * as dialogs from 'tns-core-modules/ui/dialogs';
-import { setActivityCallbacks, AndroidActivityCallbacks } from "tns-core-modules/ui/frame";
-import * as application from "tns-core-modules/application";
-
+import {
+  setActivityCallbacks,
+  AndroidActivityCallbacks
+} from 'tns-core-modules/ui/frame';
+import * as application from 'tns-core-modules/application';
 
 import { ErrorReport } from './Models';
-const utils = require("tns-core-modules/utils/utils");
-import * as frame from "tns-core-modules/ui/frame";
+const utils = require('tns-core-modules/utils/utils');
+import * as frame from 'tns-core-modules/ui/frame';
 
 declare const MSAppCenter: any;
 declare const MSAnalytics: any;
@@ -23,102 +27,100 @@ declare var UIStatusBarStyle: any;
 declare var UIApplication: any;
 declare var UIApplicationDelegate: any;
 
-
-
 export class AppCenter {
+  private appCenter: any;
+  private classes: Array<any>;
 
-    private appCenter: any;
-    private classes: Array<any>;
+  constructor() {}
 
-    constructor() {
-    }
+  start(option: InitOption): void {
+    let AppDelegate = UIResponder.extend(
+      {
+        applicationDidFinishLaunchingWithOptions: function(
+          application,
+          launchOptions
+        ) {
+          MSCrashes.setDelegate(this);
 
-    start(option: InitOption): void {
+          const classes = NSMutableArray.alloc().init();
 
-        let AppDelegate = UIResponder.extend({
-            applicationDidFinishLaunchingWithOptions: function (application, launchOptions) {
+          if (option.analytics) {
+            classes.addObject(MSAnalytics);
+          }
 
-                MSCrashes.setDelegate(this);
+          if (option.crashes) {
+            classes.addObject(MSCrashes);
+          }
 
-                const classes = NSMutableArray.alloc().init();
+          if (option.distribute) {
+            classes.addObject(MSDistribute);
+          }
 
-                if (option.analytics) {
-                    classes.addObject(MSAnalytics);
-                }
+          MSAppCenter.startWithServices(option.appSecret, classes);
 
-                if (option.crashes) {
-                    classes.addObject(MSCrashes);
-                }
-
-                MSAppCenter.startWithServices(option.appSecret, classes);
-
-                return true;
-            }
-        }, {
-                name: "AppDelegate",
-                protocols: [UIApplicationDelegate],
-            }
-        );
-
-
-        application.ios.delegate = AppDelegate;
-
-
-    }
-
-    // analytics methods
-
-    trackEvent(eventName: string, properties?: Array<PropertyOption>): void {
-
-        if (properties) {
-            let _properties = NSMutableDictionary.alloc().init();
-
-            properties.forEach(property => {
-                _properties.setValueForKey(property.key, property.value);
-            });
-
-            MSAnalytics.trackEventWithProperties(eventName, _properties);
-        } else {
-            MSAnalytics.trackEvent(eventName);
+          return true;
         }
-    }
+      },
+      {
+        name: 'AppDelegate',
+        protocols: [UIApplicationDelegate]
+      }
+    );
 
-    isAnalyticsEnabled(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            resolve(MSAnalytics.isEnabled());
-        });
-    }
+    application.ios.delegate = AppDelegate;
+  }
 
-    isAnalyticsEnabledSync(): boolean {
-        return MSAnalytics.isEnabled();
-    }
+  // analytics methods
 
-    setAnalyticsEnabled(arg: boolean): void {
-        MSAnalytics.setEnabled(arg);
-    }
+  trackEvent(eventName: string, properties?: Array<PropertyOption>): void {
+    if (properties) {
+      let _properties = NSMutableDictionary.alloc().init();
 
-    setAnalyticsEnabledSync(arg: boolean): void {
-        MSAnalytics.setEnabled(arg);
-    }
+      properties.forEach(property => {
+        _properties.setValueForKey(property.key, property.value);
+      });
 
-    // Crashes methods
-
-    testCraches(): void {
-        MSCrashes.generateTestCrash();
+      MSAnalytics.trackEventWithProperties(eventName, _properties);
+    } else {
+      MSAnalytics.trackEvent(eventName);
     }
+  }
 
-    isCrashedEnabled(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            resolve(MSCrashes.isEnabled());
-        });
-    }
+  isAnalyticsEnabled(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      resolve(MSAnalytics.isEnabled());
+    });
+  }
 
-    isCrashedEnabledSync(): boolean {
-        return MSCrashes.isEnabled();
-    }
+  isAnalyticsEnabledSync(): boolean {
+    return MSAnalytics.isEnabled();
+  }
 
-    setCrashesEnabled(arg: boolean): void {
-        MSCrashes.setEnabled(arg);
-    }
+  setAnalyticsEnabled(arg: boolean): void {
+    MSAnalytics.setEnabled(arg);
+  }
+
+  setAnalyticsEnabledSync(arg: boolean): void {
+    MSAnalytics.setEnabled(arg);
+  }
+
+  // Crashes methods
+
+  testCraches(): void {
+    MSCrashes.generateTestCrash();
+  }
+
+  isCrashedEnabled(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      resolve(MSCrashes.isEnabled());
+    });
+  }
+
+  isCrashedEnabledSync(): boolean {
+    return MSCrashes.isEnabled();
+  }
+
+  setCrashesEnabled(arg: boolean): void {
+    MSCrashes.setEnabled(arg);
+  }
 }
-

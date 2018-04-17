@@ -1,146 +1,167 @@
-
-
-
-
-import { InitOption, TrackEventOption, PropertyOption, CrashesListener, AnalyticsListener } from './app-center.common';
+import {
+  InitOption,
+  TrackEventOption,
+  PropertyOption,
+  CrashesListener,
+  AnalyticsListener
+} from './app-center.common';
 import * as dialogs from 'tns-core-modules/ui/dialogs';
-import { setActivityCallbacks, AndroidActivityCallbacks } from "tns-core-modules/ui/frame";
-
+import {
+  setActivityCallbacks,
+  AndroidActivityCallbacks
+} from 'tns-core-modules/ui/frame';
 
 import { ErrorReport } from './Models';
-const utils = require("tns-core-modules/utils/utils");
-import * as frame from "tns-core-modules/ui/frame";
+const utils = require('tns-core-modules/utils/utils');
+import * as frame from 'tns-core-modules/ui/frame';
 
 declare const com: any;
 declare const java: any;
 declare const android: any;
 
 export class AppCenter {
+  private appCenter: any;
+  private classes: Array<any>;
 
-    private appCenter: any;
-    private classes: Array<any>;
+  constructor() {}
 
-    constructor() { }
+  start(option: InitOption): void {
+    this.classes = new Array<any>();
 
-    start(option: InitOption): void {
-
-        this.classes = new Array<any>();
-
-        if (option.analytics) {
-            this.classes.push(com.microsoft.appcenter.analytics.Analytics.class);
-        }
-
-        if (option.crashes) {
-            this.classes.push(com.microsoft.appcenter.crashes.Crashes.class);
-        }
-
-        setTimeout(() => {
-            com.microsoft.appcenter.AppCenter.start(utils.ad.getApplication(), option.appSecret, this.classes);
-        }, 200);
+    if (option.analytics) {
+      this.classes.push(com.microsoft.appcenter.analytics.Analytics.class);
     }
 
-    // analytics methods
-
-    trackEvent(eventName: string, properties?: Array<PropertyOption>): void {
-
-        if (properties) {
-
-            let _properties: any = new java.util.HashMap();
-
-            properties.forEach(property => {
-                _properties.put(property.key, property.value);
-            });
-
-            com.microsoft.appcenter.analytics.Analytics.trackEvent(eventName, _properties);
-        } else {
-            com.microsoft.appcenter.analytics.Analytics.trackEvent(eventName);
-        }
+    if (option.crashes) {
+      this.classes.push(com.microsoft.appcenter.crashes.Crashes.class);
     }
 
-    isAnalyticsEnabled(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            resolve(com.microsoft.appcenter.analytics.Analytics.isEnabled().get());
-        });
+    if (option.distribute) {
+      this.classes.push(com.microsoft.appcenter.distribute.Distribute.class);
     }
 
-    isAnalyticsEnabledSync(): boolean {
-        return com.microsoft.appcenter.analytics.Analytics.isEnabled().get();
+    setTimeout(() => {
+      com.microsoft.appcenter.AppCenter.start(
+        utils.ad.getApplication(),
+        option.appSecret,
+        this.classes
+      );
+    }, 200);
+  }
+
+  // analytics methods
+
+  trackEvent(eventName: string, properties?: Array<PropertyOption>): void {
+    if (properties) {
+      let _properties: any = new java.util.HashMap();
+
+      properties.forEach(property => {
+        _properties.put(property.key, property.value);
+      });
+
+      com.microsoft.appcenter.analytics.Analytics.trackEvent(
+        eventName,
+        _properties
+      );
+    } else {
+      com.microsoft.appcenter.analytics.Analytics.trackEvent(eventName);
     }
+  }
 
-    setAnalyticsEnabled(arg: boolean): void {
-        com.microsoft.appcenter.analytics.Analytics.setEnabled(arg);
-    }
+  isAnalyticsEnabled(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      resolve(com.microsoft.appcenter.analytics.Analytics.isEnabled().get());
+    });
+  }
 
-    setAnalyticsEnabledSync(arg: boolean): void {
-        com.microsoft.appcenter.analytics.Analytics.setEnabled(arg);
-    }
+  isAnalyticsEnabledSync(): boolean {
+    return com.microsoft.appcenter.analytics.Analytics.isEnabled().get();
+  }
 
+  setAnalyticsEnabled(arg: boolean): void {
+    com.microsoft.appcenter.analytics.Analytics.setEnabled(arg);
+  }
 
-    onAnalyticsListener(callbacks: AnalyticsListener): void {
-        com.microsoft.appcenter.analytics.Analytics.setListener(new com.microsoft.appcenter.analytics.channel.AnalyticsListener({
-            onBeforeSending: callbacks.onBeforeSending,
-            onSendingFailed: callbacks.onSendingFailed,
-            onSendingSucceeded: callbacks.onSendingSucceeded
-        }));
-    }
+  setAnalyticsEnabledSync(arg: boolean): void {
+    com.microsoft.appcenter.analytics.Analytics.setEnabled(arg);
+  }
 
-    // Crashes methods
+  onAnalyticsListener(callbacks: AnalyticsListener): void {
+    com.microsoft.appcenter.analytics.Analytics.setListener(
+      new com.microsoft.appcenter.analytics.channel.AnalyticsListener({
+        onBeforeSending: callbacks.onBeforeSending,
+        onSendingFailed: callbacks.onSendingFailed,
+        onSendingSucceeded: callbacks.onSendingSucceeded
+      })
+    );
+  }
 
-    testCraches(): void {
-        com.microsoft.appcenter.crashes.Crashes.generateTestCrash();
-    }
+  // Crashes methods
 
-    hasCrashedInLastSession(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            resolve(com.microsoft.appcenter.crashes.Crashes.hasCrashedInLastSession().get());
-        });
-    }
+  testCraches(): void {
+    com.microsoft.appcenter.crashes.Crashes.generateTestCrash();
+  }
 
-    hasCrashedInLastSessionSync(): boolean {
-        return com.microsoft.appcenter.crashes.Crashes.hasCrashedInLastSession().get();
-    }
+  hasCrashedInLastSession(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      resolve(
+        com.microsoft.appcenter.crashes.Crashes.hasCrashedInLastSession().get()
+      );
+    });
+  }
 
-    isCrashedEnabled(): Promise<boolean> {
-        return new Promise((resolve, reject) => {
-            resolve(com.microsoft.appcenter.crashes.Crashes.isEnabled().get());
-        });
-    }
+  hasCrashedInLastSessionSync(): boolean {
+    return com.microsoft.appcenter.crashes.Crashes.hasCrashedInLastSession().get();
+  }
 
-    isCrashedEnabledSync(): boolean {
-        return com.microsoft.appcenter.crashes.Crashes.isEnabled().get();
-    }
+  isCrashedEnabled(): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      resolve(com.microsoft.appcenter.crashes.Crashes.isEnabled().get());
+    });
+  }
 
-    onCrashesListener(callbacks: CrashesListener): void {
+  isCrashedEnabledSync(): boolean {
+    return com.microsoft.appcenter.crashes.Crashes.isEnabled().get();
+  }
 
-        let abstractListener = com.microsoft.appcenter.crashes.AbstractCrashesListener.extend({
-            shouldProcess: callbacks.shouldProcess,
-            shouldAwaitUserConfirmation: callbacks.shouldAwaitUserConfirmation,
-            getErrorAttachments: callbacks.getErrorAttachments,
-            onBeforeSending: callbacks.onBeforeSending,
-            onSendingFailed: callbacks.onSendingFailed,
-            onSendingSucceeded: callbacks.onSendingSucceeded
-        });
+  onCrashesListener(callbacks: CrashesListener): void {
+    let abstractListener = com.microsoft.appcenter.crashes.AbstractCrashesListener.extend(
+      {
+        shouldProcess: callbacks.shouldProcess,
+        shouldAwaitUserConfirmation: callbacks.shouldAwaitUserConfirmation,
+        getErrorAttachments: callbacks.getErrorAttachments,
+        onBeforeSending: callbacks.onBeforeSending,
+        onSendingFailed: callbacks.onSendingFailed,
+        onSendingSucceeded: callbacks.onSendingSucceeded
+      }
+    );
 
-        com.microsoft.appcenter.crashes.Crashes.setListener(new abstractListener());
-    }
+    com.microsoft.appcenter.crashes.Crashes.setListener(new abstractListener());
+  }
 
-    setCrashesEnabled(arg: boolean): void {
-        com.microsoft.appcenter.crashes.Crashes.setEnabled(arg);
-    }
+  setCrashesEnabled(arg: boolean): void {
+    com.microsoft.appcenter.crashes.Crashes.setEnabled(arg);
+  }
 
-    setCrashesEnabledSync(arg: boolean): void {
-        com.microsoft.appcenter.crashes.Crashes.setEnabled(arg);
-    }
+  setCrashesEnabledSync(arg: boolean): void {
+    com.microsoft.appcenter.crashes.Crashes.setEnabled(arg);
+  }
 
-    crashesNotifyUserConfirmationDontSend(): void {
-        com.microsoft.appcenter.crashes.Crashes.notifyUserConfirmation(com.microsoft.appcenter.crashes.Crashes.DONT_SEND);
-    }
+  crashesNotifyUserConfirmationDontSend(): void {
+    com.microsoft.appcenter.crashes.Crashes.notifyUserConfirmation(
+      com.microsoft.appcenter.crashes.Crashes.DONT_SEND
+    );
+  }
 
-    crashesNotifyUserConfirmationSend(): void {
-        com.microsoft.appcenter.crashes.Crashes.notifyUserConfirmation(com.microsoft.appcenter.crashes.Crashes.SEND);
-    }
+  crashesNotifyUserConfirmationSend(): void {
+    com.microsoft.appcenter.crashes.Crashes.notifyUserConfirmation(
+      com.microsoft.appcenter.crashes.Crashes.SEND
+    );
+  }
 
-    crashesNotifyUserConfirmationAlwaysSend(): void {
-        com.microsoft.appcenter.crashes.Crashes.notifyUserConfirmation(com.microsoft.appcenter.crashes.Crashes.ALWAYS_SEND);
-    }
+  crashesNotifyUserConfirmationAlwaysSend(): void {
+    com.microsoft.appcenter.crashes.Crashes.notifyUserConfirmation(
+      com.microsoft.appcenter.crashes.Crashes.ALWAYS_SEND
+    );
+  }
 }
